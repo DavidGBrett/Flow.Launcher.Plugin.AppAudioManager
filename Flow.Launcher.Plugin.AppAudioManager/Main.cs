@@ -43,6 +43,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     Action = _ =>
                     {
                         session.ToggleMute();
+
+                        _context.API.ReQuery();
                         return true;
                     }
                 });
@@ -55,6 +57,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     Action = _ =>
                     {
                         session.Volume += 0.05f;
+
+                        _context.API.ReQuery();
                         return true;
                     }
                 });
@@ -67,6 +71,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     Action = _ =>
                     {
                         session.Volume -= 0.05f;
+
+                        _context.API.ReQuery();
                         return true;
                     }
                 });
