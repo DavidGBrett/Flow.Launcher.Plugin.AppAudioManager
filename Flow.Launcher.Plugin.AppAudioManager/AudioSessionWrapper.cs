@@ -34,16 +34,45 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             ProcessId = (int)_session.GetProcessID;
 
-            Process process = null;
+            // Get process associated with the audio session
+            Process sessionProcess = null;
             try {
-                process = Process.GetProcessById(ProcessId);
+                sessionProcess = Process.GetProcessById(ProcessId);
             }   catch (Exception ex) when (
                 ex is ArgumentException or InvalidOperationException) { /* Ignore */ };
 
-            Name = GetBestName(_session, process);
-            IconPath = GetIconPath(_session, process);
+            // If the process is a WebView2 process, go up the parent chain to find the actual host process
+            var parentProcess = sessionProcess;
+            while (parentProcess is not null && parentProcess.ProcessName == "msedgewebview2")
+            {
+                var parentProcessId = ProcessHelper.GetParentProcessId(parentProcess.Id);
+                if (parentProcessId == -1)
+                {
+                    break;
+                }
 
-            if (process is not null) process.Dispose();
+                if (parentProcess != sessionProcess) parentProcess.Dispose();
+
+                try {    
+                    parentProcess = Process.GetProcessById(parentProcessId);
+                }   catch (Exception ex) when (
+                    ex is ArgumentException or InvalidOperationException)
+                {
+                    parentProcess = null;
+                }
+            }
+
+            // For Name and Icon, Use the parent process if found, otherwise use the session process
+            var referenceProcess = sessionProcess;
+            if (parentProcess is not null)
+            {
+                referenceProcess = parentProcess;
+            }
+            Name = GetBestName(_session, referenceProcess);
+            IconPath = GetIconPath(_session, referenceProcess);
+
+            if (sessionProcess is not null) sessionProcess.Dispose();
+            if (parentProcess is not null) parentProcess.Dispose();
         }
 
         private static string GetBestName(AudioSessionControl session, Process process)
