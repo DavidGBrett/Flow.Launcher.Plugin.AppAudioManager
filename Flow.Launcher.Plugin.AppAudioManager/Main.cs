@@ -4,6 +4,8 @@ using Flow.Launcher.Plugin;
 using NAudio.CoreAudioApi;
 using System.Diagnostics;
 using System.Windows.Forms.Design.Behavior;
+using Microsoft.VisualBasic.Devices;
+using NAudio.CoreAudioApi.Interfaces;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
@@ -13,7 +15,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
         private MMDeviceEnumerator deviceEnumerator;
 
-        private AudioSessionControl selectedSession;
+        private AudioSessionWrapper selectedSession;
 
         public void Init(PluginInitContext context)
         {
@@ -37,11 +39,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 {
                     Title = "Toggle Mute",
                     Glyph = new GlyphInfo("sans-serif", "🔇"),
-                    SubTitle = $"Current mute status: {session.SimpleAudioVolume.Mute}",
+                    SubTitle = $"Current mute status: {session.IsMuted}",
                     Action = _ =>
                     {
-                        // Toggle mute
-                        session.SimpleAudioVolume.Mute = !session.SimpleAudioVolume.Mute;
+                        session.ToggleMute();
                         return true;
                     }
                 });
@@ -58,48 +59,34 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             foreach (var device in audioDeviceEndpoints)
             {
-                
 
                 var sessions = device.AudioSessionManager.Sessions;
 
                 for (int i = 0; i < sessions.Count; i++)
                 {
-                    AudioSessionControl session = sessions[i];
-
-
-                    // Get session state: Inactive, Active, or Expired
-                    var state = session.State;
                     
-                    // Try to get process info
-                    uint processId = session.GetProcessID;
-                    string processName = "Unknown";
-                    string mainWindowTitle = "";
-                    try
-                    {
-                        var process = Process.GetProcessById((int)processId);
-                        processName = process.ProcessName;
-                        mainWindowTitle = process.MainWindowTitle;
-                        
-                    }
-                    catch (ArgumentException)
-                    {
-                        // Process may have exited or PID is invalid
-                    }
+                    var sessionInfo = new AudioSessionWrapper(sessions[i]);
 
-                    var bestName = !string.IsNullOrEmpty(session.DisplayName) ? session.DisplayName : processName;
+                    string sessionState = sessionInfo.State switch
+                    {
+                        AudioSessionState.AudioSessionStateActive => "Active",
+                        AudioSessionState.AudioSessionStateInactive => "Inactive",
+                        AudioSessionState.AudioSessionStateExpired => "Expired",
+                        _ => "Unknown"
+                    };
 
                     results.Add(new Result{
-                        Title = session.DisplayName,
-                        SubTitle = $"{processId} - {processName} - {mainWindowTitle}",
-                        IcoPath = session.IconPath,
+                        Title = sessionInfo.Name,
+                        SubTitle = $"{sessionState} | Volume: {Math.Round(sessionInfo.Volume * 100)}% | Muted: {sessionInfo.IsMuted}",
+                        IcoPath = sessionInfo.IconPath,
                         Action = _ =>
                         {
                             // // Toggle mute
                             // session.SimpleAudioVolume.Mute = !session.SimpleAudioVolume.Mute;
                             // return true;
 
-                            selectedSession = session;
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {bestName} >");
+                            selectedSession = sessionInfo;
+                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {sessionInfo.Name} >");
                             return false;
                         }
                     });
