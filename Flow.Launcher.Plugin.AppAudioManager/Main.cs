@@ -47,6 +47,30 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     }
                 });
 
+                results.Add(new Result
+                {
+                    Title = "Increase Volume by 5%",
+                    Glyph = new GlyphInfo("sans-serif", "+"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        session.Volume += 0.05f;
+                        return true;
+                    }
+                });
+
+                results.Add(new Result
+                {
+                    Title = "Decrease Volume by 5%",
+                    Glyph = new GlyphInfo("sans-serif", "-"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        session.Volume -= 0.05f;
+                        return true;
+                    }
+                });
+
                 return results;
             }
 
