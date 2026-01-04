@@ -81,10 +81,6 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         IcoPath = sessionInfo.IconPath,
                         Action = _ =>
                         {
-                            // // Toggle mute
-                            // session.SimpleAudioVolume.Mute = !session.SimpleAudioVolume.Mute;
-                            // return true;
-
                             selectedSession = sessionInfo;
                             _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {sessionInfo.Name} >");
                             return false;
