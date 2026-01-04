@@ -82,11 +82,19 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         _ => "Unknown"
                     };
 
+                    // Prioritize audio sessions that are playing audio, ie in the Active state
+                    var score = 0;
+                    if (sessionInfo.State == AudioSessionState.AudioSessionStateActive)
+                    {
+                        score = 50;
+                    }
+
                     results.Add(new Result{
                         Title = sessionInfo.Name,
                         SubTitle = $"{sessionState} | Volume: {Math.Round(sessionInfo.Volume * 100)}% | Muted: {sessionInfo.IsMuted}",
                         IcoPath = sessionInfo.IconPath,
                         ContextData = sessionInfo,
+                        Score = score,
                         Action = _ =>
                         {
                             selectedSession = sessionInfo;
