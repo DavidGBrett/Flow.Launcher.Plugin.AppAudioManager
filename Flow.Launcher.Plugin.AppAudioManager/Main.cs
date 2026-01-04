@@ -67,6 +67,13 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     
                     var sessionInfo = new AudioSessionWrapper(sessions[i]);
 
+                    // skip sessions without a name matching the search query
+                    if (!string.IsNullOrEmpty(query.Search) &&
+                        !sessionInfo.Name.Contains(query.Search, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     string sessionState = sessionInfo.State switch
                     {
                         AudioSessionState.AudioSessionStateActive => "Active",
