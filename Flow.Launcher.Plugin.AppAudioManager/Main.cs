@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Flow.Launcher.Plugin;
 using NAudio.CoreAudioApi;
 using System.Diagnostics;
+using System.Windows.Forms.Design.Behavior;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
@@ -12,17 +13,43 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
         private MMDeviceEnumerator deviceEnumerator;
 
+        private AudioSessionControl selectedSession;
+
         public void Init(PluginInitContext context)
         {
             _context = context;
 
             deviceEnumerator = new MMDeviceEnumerator();
 
+            selectedSession = null;
+
         }
 
         public List<Result> Query(Query query)
         {
             var results = new List<Result>();
+
+            if (query.Search.Contains(">"))
+            {
+                var session = selectedSession;
+
+                results.Add(new Result
+                {
+                    Title = "Toggle Mute",
+                    Glyph = new GlyphInfo("sans-serif", "🔇"),
+                    SubTitle = $"Current mute status: {session.SimpleAudioVolume.Mute}",
+                    Action = _ =>
+                    {
+                        // Toggle mute
+                        session.SimpleAudioVolume.Mute = !session.SimpleAudioVolume.Mute;
+                        return true;
+                    }
+                });
+
+                return results;
+            }
+
+            selectedSession = null;
 
             MMDeviceCollection audioDeviceEndpoints = deviceEnumerator.EnumerateAudioEndPoints(
                 DataFlow.Render, // Output devices
@@ -31,6 +58,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             foreach (var device in audioDeviceEndpoints)
             {
+                
 
                 var sessions = device.AudioSessionManager.Sessions;
 
@@ -58,15 +86,21 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         // Process may have exited or PID is invalid
                     }
 
+                    var bestName = !string.IsNullOrEmpty(session.DisplayName) ? session.DisplayName : processName;
+
                     results.Add(new Result{
                         Title = session.DisplayName,
-                        SubTitle = $"{processId} - {state} - {processName} - {mainWindowTitle}",
+                        SubTitle = $"{processId} - {processName} - {mainWindowTitle}",
                         IcoPath = session.IconPath,
                         Action = _ =>
                         {
-                            // Toggle mute
-                            session.SimpleAudioVolume.Mute = !session.SimpleAudioVolume.Mute;
-                            return true;
+                            // // Toggle mute
+                            // session.SimpleAudioVolume.Mute = !session.SimpleAudioVolume.Mute;
+                            // return true;
+
+                            selectedSession = session;
+                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {bestName} >");
+                            return false;
                         }
                     });
                 }
