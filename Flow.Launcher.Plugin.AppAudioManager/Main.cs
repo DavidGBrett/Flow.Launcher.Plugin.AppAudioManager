@@ -9,7 +9,7 @@ using NAudio.CoreAudioApi.Interfaces;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
-    public class AppAudioManager : IPlugin
+    public class AppAudioManager : IPlugin, IContextMenu
     {
         private PluginInitContext _context;
 
@@ -79,6 +79,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         Title = sessionInfo.Name,
                         SubTitle = $"{sessionState} | Volume: {Math.Round(sessionInfo.Volume * 100)}% | Muted: {sessionInfo.IsMuted}",
                         IcoPath = sessionInfo.IconPath,
+                        ContextData = sessionInfo,
                         Action = _ =>
                         {
                             selectedSession = sessionInfo;
@@ -88,6 +89,50 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     });
                 }
             }
+
+            return results;
+        }
+
+        public List<Result> LoadContextMenus(Result selectedResult)
+        {
+            var results = new List<Result>();
+            var session = (AudioSessionWrapper)selectedResult.ContextData;
+
+            results.Add( new Result
+            {
+                Title = "Copy Name to Clipboard",
+                SubTitle = session.Name,
+                Glyph = new GlyphInfo("sans-serif", "N"),
+                Action = _ =>
+                {
+                    _context.API.CopyToClipboard(session.Name);
+                    return true;
+                }
+            });
+
+            results.Add( new Result
+            {
+                Title = "Copy Process ID to Clipboard",
+                SubTitle = session.ProcessId.ToString(),
+                Glyph = new GlyphInfo("sans-serif", "ID"),
+                Action = _ =>
+                {
+                    _context.API.CopyToClipboard(session.ProcessId.ToString());
+                    return true;
+                }
+            });
+
+            results.Add( new Result
+            {
+                Title = "Copy Icon File Path to Clipboard",
+                SubTitle = session.IconPath,
+                IcoPath = session.IconPath,
+                Action = _ =>
+                {
+                    _context.API.CopyToClipboard(session.IconPath);
+                    return true;
+                }
+            });
 
             return results;
         }
