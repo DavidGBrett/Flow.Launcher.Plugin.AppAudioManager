@@ -224,7 +224,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 }
             });
 
-                            results.Add(new Result
+            results.Add(new Result
             {
                 Title = "Decrease Volume",
                 Glyph = new GlyphInfo("sans-serif", "-"),
