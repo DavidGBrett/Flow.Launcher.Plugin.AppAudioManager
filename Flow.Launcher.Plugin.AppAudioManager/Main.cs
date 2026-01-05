@@ -121,6 +121,53 @@ namespace Flow.Launcher.Plugin.AppAudioManager
         {
             var results = new List<Result>();
 
+            var actions = new List<(
+                List<string> Names,
+                Func<Result> GetResult,
+                string SubActionKeyword,
+                Func<List<Result>> GetSubActions
+            )>(){
+                (
+                    Names: new List<string>{ "Increase Volume", "+"},
+                    GetResult: ()=>new Result
+                    {
+                        Title = "Increase Volume",
+                        Glyph = new GlyphInfo("sans-serif", "+"),
+                        SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                        Action = _ =>
+                        {
+                            _context.API.ChangeQuery(
+                                $"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
+                            return false;
+                        }
+                    },
+                    SubActionKeyword: " vol+ ",
+                    GetSubActions: () => {
+                        float increaseAmount = ParseVolumeQuery(
+                            queryString: queryString,
+                            keyword: "vol+",
+                            defaultVolume: 0.05f
+                        );
+
+                        results.Add(new Result
+                        {
+                            Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
+                            Glyph = new GlyphInfo("sans-serif", "+"),
+                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            Action = _ =>
+                            {
+                                session.Volume += increaseAmount;
+
+                                _context.API.ReQuery();
+                                return true;
+                            }
+                        });
+
+                        return results;
+                    }
+                )
+            };
+
             if (queryString.Contains("vol+"))
             {
                 // Extract the desired volume increase from the query
