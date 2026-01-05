@@ -35,6 +35,33 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             {
                 var session = selectedSession;
 
+                if (query.Search.Contains("vol+"))
+                {
+                    // Extract the desired volume increase from the query
+                    string[] parts = query.Search.Split(new[] { "vol+" }, StringSplitOptions.RemoveEmptyEntries);
+                    
+                    float increaseAmount = parts.Length > 1
+                        && float.TryParse(parts[1].Trim().TrimEnd('%'), out float parsedAmount)
+                        ? parsedAmount / 100f
+                        : 0.05f; // Default increase by 5%
+
+                    results.Add(new Result
+                    {
+                        Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
+                        Glyph = new GlyphInfo("sans-serif", "+"),
+                        SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                        Action = _ =>
+                        {
+                            session.Volume += increaseAmount;
+
+                            _context.API.ReQuery();
+                            return true;
+                        }
+                    });
+
+                    return results;
+                }
+
                 results.Add(new Result
                 {
                     Title = "Toggle Mute",
@@ -46,6 +73,19 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
                         _context.API.ReQuery();
                         return true;
+                    }
+                });
+
+                results.Add(new Result
+                {
+                    Title = "Increase Volume",
+                    Glyph = new GlyphInfo("sans-serif", "+"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        _context.API.ChangeQuery(
+                            $"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
+                        return false;
                     }
                 });
 
