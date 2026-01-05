@@ -61,6 +61,54 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     });
 
                     return results;
+                } else if (query.Search.Contains("vol-"))
+                {
+                    // Extract the desired volume decrease from the query
+                    float decreaseAmount = ParseVolumeQuery(
+                        queryString: query.Search,
+                        keyword: "vol-",
+                        defaultVolume: 0.05f
+                    );
+
+                    results.Add(new Result
+                    {
+                        Title = $"Decrease Volume by {Math.Round(decreaseAmount * 100)}%",
+                        Glyph = new GlyphInfo("sans-serif", "-"),
+                        SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                        Action = _ =>
+                        {
+                            session.Volume -= decreaseAmount;
+
+                            _context.API.ReQuery();
+                            return true;
+                        }
+                    });
+
+                    return results;
+                } else if (query.Search.Contains("vol="))
+                {
+                    // Extract the desired volume level from the query
+                    float setVolume = ParseVolumeQuery(
+                        queryString: query.Search,
+                        keyword: "vol=",
+                        defaultVolume: 0.5f
+                    );
+
+                    results.Add(new Result
+                    {
+                        Title = $"Set Volume to {Math.Round(setVolume * 100)}%",
+                        Glyph = new GlyphInfo("sans-serif", "="),
+                        SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                        Action = _ =>
+                        {
+                            session.Volume = setVolume;
+
+                            _context.API.ReQuery();
+                            return true;
+                        }
+                    });
+
+                    return results;
                 }
 
                 results.Add(new Result
@@ -86,6 +134,32 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     {
                         _context.API.ChangeQuery(
                             $"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
+                        return false;
+                    }
+                });
+
+                                results.Add(new Result
+                {
+                    Title = "Decrease Volume",
+                    Glyph = new GlyphInfo("sans-serif", "-"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        _context.API.ChangeQuery(
+                            $"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol- ");
+                        return false;
+                    }
+                });
+
+                results.Add(new Result
+                {
+                    Title = "Set Volume",
+                    Glyph = new GlyphInfo("sans-serif", "="),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        _context.API.ChangeQuery(
+                            $"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol= ");
                         return false;
                     }
                 });
