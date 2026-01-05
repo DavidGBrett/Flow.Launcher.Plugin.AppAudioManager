@@ -40,10 +40,11 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     // Extract the desired volume increase from the query
                     string[] parts = query.Search.Split(new[] { "vol+" }, StringSplitOptions.RemoveEmptyEntries);
                     
-                    float increaseAmount = parts.Length > 1
-                        && float.TryParse(parts[1].Trim().TrimEnd('%'), out float parsedAmount)
-                        ? parsedAmount / 100f
-                        : 0.05f; // Default increase by 5%
+                    float increaseAmount = ParseVolumeQuery(
+                        queryString: query.Search,
+                        keyword: "vol+",
+                        defaultVolume: 0.05f
+                    );
 
                     results.Add(new Result
                     {
@@ -176,6 +177,22 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             }
 
             return results;
+        }
+
+        public float ParseVolumeQuery(string queryString, string keyword, float defaultVolume=0.05f)
+        {
+            // split the query at the keyword to isolate the volume part
+            string[] parts = queryString.Split(new[] { keyword }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length <= 1)  return defaultVolume;
+
+            // Try to parse the volume part after the keyword
+            bool sucessfulParse = float.TryParse(
+                parts[1].Trim().TrimEnd('%'), out float parsedVolume);
+
+            if (! sucessfulParse) return defaultVolume;
+
+            return parsedVolume / 100f;
         }
 
         public List<Result> LoadContextMenus(Result selectedResult)
