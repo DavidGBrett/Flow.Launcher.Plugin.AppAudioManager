@@ -157,7 +157,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
                         Action = _ =>
                         {
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {queryString} vol+ ");
+                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
                             return false;
                         }
                     };
@@ -205,7 +205,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
                         Action = _ =>
                         {
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {queryString} vol- ");
+                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol- ");
                             return false;
                         }
                     };
@@ -253,7 +253,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
                         Action = _ =>
                         {
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {queryString} vol= ");
+                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol= ");
                             return false;
                         }
                     };
