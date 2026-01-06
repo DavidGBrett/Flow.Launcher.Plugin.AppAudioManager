@@ -36,9 +36,14 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             {
                 var session = selectedSession;
 
-                results = getActions(
+                var availableOptions = getOptions(
                     queryString: query.Search,
                     session: session
+                );
+
+                results = getCurrentOptions(
+                    availableOptions:availableOptions,
+                    queryString:query.Search
                 );
 
                 return results;
@@ -118,7 +123,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             return parsedVolume / 100f;
         }
 
-        public List<Result> getActions(string queryString, AudioSessionWrapper session)
+        public List<ActionOption> getOptions(string queryString, AudioSessionWrapper session)
         {
             var results = new List<Result>();
 
@@ -267,20 +272,26 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     })
                 }
             ));
-
             
-            foreach (var actionOption in actionOptions)
+            return actionOptions;
+        }
+
+        public List<Result> getCurrentOptions(List<ActionOption> availableOptions, string queryString)
+        {
+            var results = new List<Result>();
+
+            foreach (var actionOption in availableOptions)
             {
                 if (
                     !string.IsNullOrEmpty(actionOption.SubOptionKeyword) 
                     && queryString.Contains(actionOption.SubOptionKeyword)
                 ){
-                    results = new List<Result>();
+                    var subActionResults = new List<Result>();
                     foreach (var subAction in actionOption.GetSubOptions())
                     {
-                        results.Add(subAction.CreateResult());
+                        subActionResults.Add(subAction.CreateResult());
                     }
-                    return results;
+                    return subActionResults;
                 }
                 else
                 {
