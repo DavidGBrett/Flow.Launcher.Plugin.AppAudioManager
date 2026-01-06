@@ -118,6 +118,64 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             return parsedVolume / 100f;
         }
 
+        public ActionOption generateVolumeAction(
+            AudioSessionWrapper session,
+            string queryString,
+            string title,
+            string glyphString,
+            string subOptionKeyword,
+            string subOptionTitlePrefix,
+            Action<AudioSessionWrapper, float> action,
+            List<string> otherNames = null
+        ){
+            
+            var names = new List<string> {title};
+            names.AddRange(otherNames);
+
+            return new ActionOption(
+                Names: names,
+                CreateResult: () => new Result
+                {
+                    Title = title,
+                    Glyph = new GlyphInfo("sans-serif", glyphString),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} >{subOptionKeyword} ");
+                        return false;
+                    }
+                },
+                SubOptionKeyword: subOptionKeyword,
+                GetSubOptions: ()=>new List<ActionOption>()
+                {
+                    new ActionOption(
+                        Names: null,
+                        CreateResult: () =>
+                        {
+                            float parsedAmount = ParseVolumeQuery(
+                                queryString: queryString,
+                                keyword: subOptionKeyword,
+                                defaultVolume: 0.05f
+                            );
+
+                            return new Result
+                            {
+                                Title = $"{subOptionTitlePrefix} {Math.Round(parsedAmount * 100)}%",
+                                Glyph = new GlyphInfo("sans-serif", glyphString),
+                                SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                                Action = _ =>
+                                {
+                                    action(session,parsedAmount);
+                                    _context.API.ReQuery();
+                                    return true;
+                                }
+                            };
+                        }
+                    )
+                }
+            );
+        }
+
         public List<Result> getActions(string queryString, AudioSessionWrapper session)
         {
             var results = new List<Result>();
@@ -143,139 +201,55 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             ));
 
             // Increase Volume Action
-            actionOptions.Add(new ActionOption(
-                Names: new List<string> { "Increase Volume", "+" },
-                CreateResult: () => new Result
-                {
-                    Title = "Increase Volume",
-                    Glyph = new GlyphInfo("sans-serif", "+"),
-                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                    Action = _ =>
+            actionOptions.Add(
+                generateVolumeAction(
+                    session:session,
+                    queryString:queryString,
+                    title:"Increase Volume",
+                    otherNames: new List<string>{"+"},
+                    glyphString: "+",
+                    subOptionKeyword:" vol+",
+                    subOptionTitlePrefix: "Increase Volume by",
+                    action: (session, parsedAmount) =>
                     {
-                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
-                        return false;
+                        session.Volume += parsedAmount;
                     }
-                },
-                SubOptionKeyword: " vol+",
-                GetSubOptions: ()=>new List<ActionOption>()
-                {
-                    new ActionOption(
-                        Names: new List<string> {},
-                        CreateResult: () =>
-                        {
-                            float increaseAmount = ParseVolumeQuery(
-                                queryString: queryString,
-                                keyword: " vol+",
-                                defaultVolume: 0.05f
-                            );
-
-                            return new Result
-                            {
-                                Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
-                                Glyph = new GlyphInfo("sans-serif", "+"),
-                                SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                                Action = _ =>
-                                {
-                                    session.Volume += increaseAmount;
-
-                                    _context.API.ReQuery();
-                                    return true;
-                                }
-                            };
-                        }
-                    )
-                }
-            ));
+                )
+            );
 
             // Decrease Volume Action
-            actionOptions.Add(new ActionOption(
-                Names: new List<string> { "Decrease Volume", "-" },
-                CreateResult: () => new Result
-                {
-                    Title = "Decrease Volume",
-                    Glyph = new GlyphInfo("sans-serif", "-"),
-                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                    Action = _ =>
+            actionOptions.Add(
+                generateVolumeAction(
+                    session:session,
+                    queryString:queryString,
+                    title:"Decrease Volume",
+                    otherNames: new List<string>{"-"},
+                    glyphString: "-",
+                    subOptionKeyword:" vol-",
+                    subOptionTitlePrefix: "Decrease Volume by",
+                    action: (session, parsedAmount) =>
                     {
-                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol- ");
-                        return false;
+                        session.Volume -= parsedAmount;
                     }
-                },
-                SubOptionKeyword: " vol-",
-                GetSubOptions: ()=>new List<ActionOption>()
-                {
-                    new ActionOption(
-                        Names: new List<string> {},
-                        CreateResult: () =>
-                        {
-                            float decreaseAmount = ParseVolumeQuery(
-                                queryString: queryString,
-                                keyword: " vol-",
-                                defaultVolume: 0.05f
-                            );
-
-                            return new Result
-                            {
-                                Title = $"Decrease Volume by {Math.Round(decreaseAmount * 100)}%",
-                                Glyph = new GlyphInfo("sans-serif", "-"),
-                                SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                                Action = _ =>
-                                {
-                                    session.Volume -= decreaseAmount;
-
-                                    _context.API.ReQuery();
-                                    return true;
-                                }
-                            };
-                        }
-                    )
-                }
-            ));
+                )
+            );
 
             // Set Specific Volume Action
-            actionOptions.Add(new ActionOption(
-                Names: new List<string> { "Set Volume", "=" },
-                CreateResult: () => new Result
-                {
-                    Title = "Set Volume",
-                    Glyph = new GlyphInfo("sans-serif", "="),
-                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                    Action = _ =>
+            actionOptions.Add(
+                generateVolumeAction(
+                    session:session,
+                    queryString:queryString,
+                    title:"Set Volume",
+                    otherNames: new List<string>{"="},
+                    glyphString: "=",
+                    subOptionKeyword:" vol=",
+                    subOptionTitlePrefix: "Set Volume to",
+                    action: (session, parsedAmount) =>
                     {
-                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol= ");
-                        return false;
+                        session.Volume = parsedAmount;
                     }
-                },
-                SubOptionKeyword: " vol=",
-                GetSubOptions: ()=>new List<ActionOption>()
-                {
-                    new ActionOption(
-                        Names: new List<string> {},
-                        CreateResult: () =>
-                        {
-                            float targetVolume = ParseVolumeQuery(
-                                queryString: queryString,
-                                keyword: " vol=",
-                                defaultVolume: 0.5f
-                            );
-
-                            return new Result
-                            {
-                                Title = $"Set Volume to {Math.Round(targetVolume * 100)}%",
-                                Glyph = new GlyphInfo("sans-serif", "="),
-                                SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                                Action = _ =>
-                                {
-                                    session.Volume = targetVolume;
-
-                                    _context.API.ReQuery();
-                                    return true;
-                                }
-                            };
-                        }
-                    )
-                }
-            ));
+                )
+            );
 
 
             foreach (var actionOption in actionOptions)
