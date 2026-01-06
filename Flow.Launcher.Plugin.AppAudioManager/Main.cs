@@ -157,33 +157,30 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     }
                 },
                 SubOptionKeyword: " vol+",
-                GetSubOptions: ()=>new List<ActionOption>()
-                {
-                    new ActionOption(
-                        Names: new List<string> {},
-                        CreateResult: () =>
+                GetSubOptions: ()=>new List<ActionOption>(){new ActionOption(
+                    Names: new List<string> {},
+                    CreateResult: () =>
+                    {
+                        float increaseAmount = ParseVolumeQuery(
+                            queryString: queryString,
+                            keyword: " vol+",
+                            defaultVolume: 0.05f
+                        );
+
+                        return new Result
                         {
-                            float increaseAmount = ParseVolumeQuery(
-                                queryString: queryString,
-                                keyword: " vol+",
-                                defaultVolume: 0.05f
-                            );
-
-                            return new Result
+                            Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
+                            Glyph = new GlyphInfo("sans-serif", "+"),
+                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            Action = _ =>
                             {
-                                Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
-                                Glyph = new GlyphInfo("sans-serif", "+"),
-                                SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                                Action = _ =>
-                                {
-                                    session.Volume += increaseAmount;
+                                session.Volume += increaseAmount;
 
-                                    _context.API.ReQuery();
-                                    return true;
-                                }
-                            };
-                        }
-                    )
+                                _context.API.ReQuery();
+                                return true;
+                            }
+                        };
+                    })
                 }
             ));
 
@@ -202,33 +199,30 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     }
                 },
                 SubOptionKeyword: " vol-",
-                GetSubOptions: ()=>new List<ActionOption>()
-                {
-                    new ActionOption(
-                        Names: new List<string> {},
-                        CreateResult: () =>
+                GetSubOptions: ()=>new List<ActionOption>(){new ActionOption(
+                    Names: new List<string> {},
+                    CreateResult: () =>
+                    {
+                        float decreaseAmount = ParseVolumeQuery(
+                            queryString: queryString,
+                            keyword: " vol-",
+                            defaultVolume: 0.05f
+                        );
+
+                        return new Result
                         {
-                            float decreaseAmount = ParseVolumeQuery(
-                                queryString: queryString,
-                                keyword: " vol-",
-                                defaultVolume: 0.05f
-                            );
-
-                            return new Result
+                            Title = $"Decrease Volume by {Math.Round(decreaseAmount * 100)}%",
+                            Glyph = new GlyphInfo("sans-serif", "-"),
+                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            Action = _ =>
                             {
-                                Title = $"Decrease Volume by {Math.Round(decreaseAmount * 100)}%",
-                                Glyph = new GlyphInfo("sans-serif", "-"),
-                                SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                                Action = _ =>
-                                {
-                                    session.Volume -= decreaseAmount;
+                                session.Volume -= decreaseAmount;
 
-                                    _context.API.ReQuery();
-                                    return true;
-                                }
-                            };
-                        }
-                    )
+                                _context.API.ReQuery();
+                                return true;
+                            }
+                        };
+                    })
                 }
             ));
 
@@ -247,37 +241,34 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     }
                 },
                 SubOptionKeyword: " vol=",
-                GetSubOptions: ()=>new List<ActionOption>()
-                {
-                    new ActionOption(
-                        Names: new List<string> {},
-                        CreateResult: () =>
+                GetSubOptions: ()=>new List<ActionOption>(){new ActionOption(
+                    Names: new List<string> {},
+                    CreateResult: () =>
+                    {
+                        float targetVolume = ParseVolumeQuery(
+                            queryString: queryString,
+                            keyword: " vol=",
+                            defaultVolume: 0.5f
+                        );
+
+                        return new Result
                         {
-                            float targetVolume = ParseVolumeQuery(
-                                queryString: queryString,
-                                keyword: " vol=",
-                                defaultVolume: 0.5f
-                            );
-
-                            return new Result
+                            Title = $"Set Volume to {Math.Round(targetVolume * 100)}%",
+                            Glyph = new GlyphInfo("sans-serif", "="),
+                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            Action = _ =>
                             {
-                                Title = $"Set Volume to {Math.Round(targetVolume * 100)}%",
-                                Glyph = new GlyphInfo("sans-serif", "="),
-                                SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                                Action = _ =>
-                                {
-                                    session.Volume = targetVolume;
+                                session.Volume = targetVolume;
 
-                                    _context.API.ReQuery();
-                                    return true;
-                                }
-                            };
-                        }
-                    )
+                                _context.API.ReQuery();
+                                return true;
+                            }
+                        };
+                    })
                 }
             ));
 
-
+            
             foreach (var actionOption in actionOptions)
             {
                 if (
