@@ -7,6 +7,7 @@ using System.Windows.Forms.Design.Behavior;
 using Microsoft.VisualBasic.Devices;
 using NAudio.CoreAudioApi.Interfaces;
 using System.Configuration;
+using System.Linq;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
@@ -280,6 +281,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
         {
             var results = new List<Result>();
 
+            string optionFilter = queryString.Split(">")[1].Trim().ToLower();
+
             foreach (var actionOption in availableOptions)
             {
                 if (
@@ -293,7 +296,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     }
                     return subActionResults;
                 }
-                else
+                else if (actionOption.Names.Any((name)=>name.ToLower().Contains(optionFilter)))
                 {
                     results.Add(actionOption.CreateResult());
                 }
