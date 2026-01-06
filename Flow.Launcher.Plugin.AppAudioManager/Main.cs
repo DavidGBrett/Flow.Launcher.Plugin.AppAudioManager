@@ -127,40 +127,34 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             // Toggle Mute Action
             actionOptions.Add(new ActionOption(
                 Names: new List<string> { "Toggle Mute", "Unmute" },
-                CreateResult: () =>
+                CreateResult: () => new Result
                 {
-                    return new Result
+                    Title = "Toggle Mute",
+                    Glyph = new GlyphInfo("sans-serif", "🔇"),
+                    SubTitle = $"Current mute status: {session.IsMuted}",
+                    Action = _ =>
                     {
-                        Title = "Toggle Mute",
-                        Glyph = new GlyphInfo("sans-serif", "🔇"),
-                        SubTitle = $"Current mute status: {session.IsMuted}",
-                        Action = _ =>
-                        {
-                            session.ToggleMute();
+                        session.ToggleMute();
 
-                            _context.API.ReQuery();
-                            return true;
-                        }
-                    };
+                        _context.API.ReQuery();
+                        return true;
+                    }
                 }
             ));
 
             // Increase Volume Action
             actionOptions.Add(new ActionOption(
                 Names: new List<string> { "Increase Volume", "+" },
-                CreateResult: () =>
+                CreateResult: () => new Result
                 {
-                    return new Result
+                    Title = "Increase Volume",
+                    Glyph = new GlyphInfo("sans-serif", "+"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
                     {
-                        Title = "Increase Volume",
-                        Glyph = new GlyphInfo("sans-serif", "+"),
-                        SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                        Action = _ =>
-                        {
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
-                            return false;
-                        }
-                    };
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
+                        return false;
+                    }
                 },
                 SubOptionKeyword: " vol+",
                 GetSubOptions: ()=>new List<ActionOption>()
@@ -196,19 +190,16 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             // Decrease Volume Action
             actionOptions.Add(new ActionOption(
                 Names: new List<string> { "Decrease Volume", "-" },
-                CreateResult: () =>
+                CreateResult: () => new Result
                 {
-                    return new Result
+                    Title = "Decrease Volume",
+                    Glyph = new GlyphInfo("sans-serif", "-"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
                     {
-                        Title = "Decrease Volume",
-                        Glyph = new GlyphInfo("sans-serif", "-"),
-                        SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                        Action = _ =>
-                        {
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol- ");
-                            return false;
-                        }
-                    };
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol- ");
+                        return false;
+                    }
                 },
                 SubOptionKeyword: " vol-",
                 GetSubOptions: ()=>new List<ActionOption>()
@@ -244,19 +235,16 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             // Set Specific Volume Action
             actionOptions.Add(new ActionOption(
                 Names: new List<string> { "Set Volume", "=" },
-                CreateResult: () =>
+                CreateResult: () => new Result
                 {
-                    return new Result
+                    Title = "Set Volume",
+                    Glyph = new GlyphInfo("sans-serif", "="),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
                     {
-                        Title = "Set Volume",
-                        Glyph = new GlyphInfo("sans-serif", "="),
-                        SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
-                        Action = _ =>
-                        {
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol= ");
-                            return false;
-                        }
-                    };
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol= ");
+                        return false;
+                    }
                 },
                 SubOptionKeyword: " vol=",
                 GetSubOptions: ()=>new List<ActionOption>()
