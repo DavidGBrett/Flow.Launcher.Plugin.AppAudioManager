@@ -285,10 +285,12 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             foreach (var actionOption in availableOptions)
             {
+                // check if we match the suboptionkeyword for this option
                 if (
                     !string.IsNullOrEmpty(actionOption.SubOptionKeyword) 
                     && queryString.Contains(actionOption.SubOptionKeyword)
                 ){
+                    // go through each suboption and get their results
                     var subActionResults = new List<Result>();
                     foreach (var subAction in actionOption.GetSubOptions())
                     {
@@ -296,6 +298,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     }
                     return subActionResults;
                 }
+
+                // otherwise check if one of the options names matches the current search filter
                 else if (actionOption.Names.Any((name)=>name.ToLower().Contains(optionFilter)))
                 {
                     results.Add(actionOption.CreateResult());
