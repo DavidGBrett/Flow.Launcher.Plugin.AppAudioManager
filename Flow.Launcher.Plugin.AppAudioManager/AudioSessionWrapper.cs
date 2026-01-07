@@ -19,7 +19,13 @@ namespace Flow.Launcher.Plugin.AppAudioManager
         public float Volume
         {
             get { return _session.SimpleAudioVolume.Volume; }
-            set { _session.SimpleAudioVolume.Volume = value; }
+            set {
+                // clamp value between 0.0 and 1.0
+                if (value < 0.0f) value = 0.0f;
+                if (value > 1.0f) value = 1.0f;
+                
+                _session.SimpleAudioVolume.Volume = value; 
+            }
         }
 
         public bool IsMuted

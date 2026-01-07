@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Windows.Forms.Design.Behavior;
 using Microsoft.VisualBasic.Devices;
 using NAudio.CoreAudioApi.Interfaces;
+using System.Configuration;
+using System.Linq;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
@@ -35,17 +37,15 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             {
                 var session = selectedSession;
 
-                results.Add(new Result
-                {
-                    Title = "Toggle Mute",
-                    Glyph = new GlyphInfo("sans-serif", "🔇"),
-                    SubTitle = $"Current mute status: {session.IsMuted}",
-                    Action = _ =>
-                    {
-                        session.ToggleMute();
-                        return true;
-                    }
-                });
+                var availableOptions = getOptions(
+                    queryString: query.Search,
+                    session: session
+                );
+
+                results = getCurrentOptions(
+                    availableOptions:availableOptions,
+                    queryString:query.Search
+                );
 
                 return results;
             }
@@ -102,6 +102,207 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                             return false;
                         }
                     });
+                }
+            }
+
+            return results;
+        }
+
+        public float ParseVolumeQuery(string queryString, string keyword, float defaultVolume=0.05f)
+        {
+            // split the query at the keyword to isolate the volume part
+            string[] parts = queryString.Split(new[] { keyword }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length <= 1)  return defaultVolume;
+
+            // Try to parse the volume part after the keyword
+            bool sucessfulParse = float.TryParse(
+                parts[1].Trim().TrimEnd('%'), out float parsedVolume);
+
+            if (! sucessfulParse) return defaultVolume;
+
+            return parsedVolume / 100f;
+        }
+
+        public List<ActionOption> getOptions(string queryString, AudioSessionWrapper session)
+        {
+            var results = new List<Result>();
+
+            List<ActionOption> actionOptions = new List<ActionOption>();
+            
+            // Toggle Mute Action
+            actionOptions.Add(new ActionOption(
+                Names: new List<string> { "Toggle Mute", "Unmute" },
+                CreateResult: () => new Result
+                {
+                    Title = "Toggle Mute",
+                    Glyph = new GlyphInfo("sans-serif", "🔇"),
+                    SubTitle = $"Current mute status: {session.IsMuted}",
+                    Action = _ =>
+                    {
+                        session.ToggleMute();
+
+                        _context.API.ReQuery();
+                        return true;
+                    }
+                }
+            ));
+
+            // Increase Volume Action
+            actionOptions.Add(new ActionOption(
+                Names: new List<string> { "Increase Volume", "+" },
+                CreateResult: () => new Result
+                {
+                    Title = "Increase Volume",
+                    Glyph = new GlyphInfo("sans-serif", "+"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
+                        return false;
+                    }
+                },
+                SubOptionKeyword: " vol+",
+                GetSubOptions: ()=>new List<ActionOption>(){new ActionOption(
+                    Names: new List<string> {},
+                    CreateResult: () =>
+                    {
+                        float increaseAmount = ParseVolumeQuery(
+                            queryString: queryString,
+                            keyword: " vol+",
+                            defaultVolume: 0.05f
+                        );
+
+                        return new Result
+                        {
+                            Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
+                            Glyph = new GlyphInfo("sans-serif", "+"),
+                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            Action = _ =>
+                            {
+                                session.Volume += increaseAmount;
+
+                                _context.API.ReQuery();
+                                return true;
+                            }
+                        };
+                    })
+                }
+            ));
+
+            // Decrease Volume Action
+            actionOptions.Add(new ActionOption(
+                Names: new List<string> { "Decrease Volume", "-" },
+                CreateResult: () => new Result
+                {
+                    Title = "Decrease Volume",
+                    Glyph = new GlyphInfo("sans-serif", "-"),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol- ");
+                        return false;
+                    }
+                },
+                SubOptionKeyword: " vol-",
+                GetSubOptions: ()=>new List<ActionOption>(){new ActionOption(
+                    Names: new List<string> {},
+                    CreateResult: () =>
+                    {
+                        float decreaseAmount = ParseVolumeQuery(
+                            queryString: queryString,
+                            keyword: " vol-",
+                            defaultVolume: 0.05f
+                        );
+
+                        return new Result
+                        {
+                            Title = $"Decrease Volume by {Math.Round(decreaseAmount * 100)}%",
+                            Glyph = new GlyphInfo("sans-serif", "-"),
+                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            Action = _ =>
+                            {
+                                session.Volume -= decreaseAmount;
+
+                                _context.API.ReQuery();
+                                return true;
+                            }
+                        };
+                    })
+                }
+            ));
+
+            // Set Specific Volume Action
+            actionOptions.Add(new ActionOption(
+                Names: new List<string> { "Set Volume", "=" },
+                CreateResult: () => new Result
+                {
+                    Title = "Set Volume",
+                    Glyph = new GlyphInfo("sans-serif", "="),
+                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    Action = _ =>
+                    {
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol= ");
+                        return false;
+                    }
+                },
+                SubOptionKeyword: " vol=",
+                GetSubOptions: ()=>new List<ActionOption>(){new ActionOption(
+                    Names: new List<string> {},
+                    CreateResult: () =>
+                    {
+                        float targetVolume = ParseVolumeQuery(
+                            queryString: queryString,
+                            keyword: " vol=",
+                            defaultVolume: 0.5f
+                        );
+
+                        return new Result
+                        {
+                            Title = $"Set Volume to {Math.Round(targetVolume * 100)}%",
+                            Glyph = new GlyphInfo("sans-serif", "="),
+                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            Action = _ =>
+                            {
+                                session.Volume = targetVolume;
+
+                                _context.API.ReQuery();
+                                return true;
+                            }
+                        };
+                    })
+                }
+            ));
+            
+            return actionOptions;
+        }
+
+        public List<Result> getCurrentOptions(List<ActionOption> availableOptions, string queryString)
+        {
+            var results = new List<Result>();
+
+            string optionFilter = queryString.Split(">")[1].Trim().ToLower();
+
+            foreach (var actionOption in availableOptions)
+            {
+                // check if we match the suboptionkeyword for this option
+                if (
+                    !string.IsNullOrEmpty(actionOption.SubOptionKeyword) 
+                    && queryString.Contains(actionOption.SubOptionKeyword)
+                ){
+                    // go through each suboption and get their results
+                    var subActionResults = new List<Result>();
+                    foreach (var subAction in actionOption.GetSubOptions())
+                    {
+                        subActionResults.Add(subAction.CreateResult());
+                    }
+                    return subActionResults;
+                }
+
+                // otherwise check if one of the options names matches the current search filter
+                else if (actionOption.Names.Any((name)=>name.ToLower().Contains(optionFilter)))
+                {
+                    results.Add(actionOption.CreateResult());
                 }
             }
 
