@@ -17,7 +17,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
         private MMDeviceEnumerator deviceEnumerator;
 
-        private AudioSessionWrapper selectedSession;
+        private AudioSession selectedSession;
 
         public void Init(PluginInitContext context)
         {
@@ -65,7 +65,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 for (int i = 0; i < sessions.Count; i++)
                 {
                     
-                    var sessionInfo = new AudioSessionWrapper(sessions[i]);
+                    var sessionInfo = new AudioSession(sessions[i]);
 
                     // skip sessions without a name matching the search query
                     if (!string.IsNullOrEmpty(query.Search) &&
@@ -124,7 +124,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             return parsedVolume / 100f;
         }
 
-        public List<ActionOption> getOptions(string queryString, AudioSessionWrapper session)
+        public List<ActionOption> getOptions(string queryString, AudioSession session)
         {
             var results = new List<Result>();
 
@@ -312,7 +312,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
         public List<Result> LoadContextMenus(Result selectedResult)
         {
             var results = new List<Result>();
-            var session = (AudioSessionWrapper)selectedResult.ContextData;
+            var session = (AudioSession)selectedResult.ContextData;
 
             results.Add( new Result
             {

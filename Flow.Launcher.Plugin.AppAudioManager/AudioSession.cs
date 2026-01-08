@@ -6,7 +6,7 @@ using NAudio.CoreAudioApi.Interfaces;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
-    public class AudioSessionWrapper
+    public class AudioSession
     {
         private AudioSessionControl _session;
         public string Name { get; }
@@ -34,7 +34,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             set { _session.SimpleAudioVolume.Mute = value; }
         }
 
-        public AudioSessionWrapper(AudioSessionControl session)
+        public AudioSession(AudioSessionControl session)
         {
             _session = session;
 
