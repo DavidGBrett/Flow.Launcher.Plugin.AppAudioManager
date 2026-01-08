@@ -40,6 +40,16 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             ProcessId = (int)_session.GetProcessID;
 
+            // First check if this is the system sounds
+            if (
+                !string.IsNullOrEmpty(session.DisplayName) 
+                && session.DisplayName.StartsWith("@%SystemRoot%\\System32\\AudioSrv.Dll")
+            ){
+                Name = "System Sounds";
+                IconPath = "";
+                return;
+            }
+
             // Get process associated with the audio session
             Process sessionProcess = null;
             try {
