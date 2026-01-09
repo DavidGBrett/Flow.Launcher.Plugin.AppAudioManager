@@ -17,7 +17,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
         private MMDeviceEnumerator deviceEnumerator;
 
-        private AudioSession selectedSession;
+        private AudioSessionGroup selectedSession;
 
         public void Init(PluginInitContext context)
         {
@@ -57,6 +57,53 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 DeviceState.Active
             );
 
+            List<AudioSessionGroup> audioSessionGroups = GetAudioSessionGroups(filter: query.Search);
+
+            foreach (var sessionGroup in audioSessionGroups)
+            {
+                string sessionState = sessionGroup.State switch
+                {
+                    AudioSessionState.AudioSessionStateActive => "Active",
+                    AudioSessionState.AudioSessionStateInactive => "Inactive",
+                    AudioSessionState.AudioSessionStateExpired => "Expired",
+                    _ => "Unknown"
+                };
+
+                // Prioritize audio sessions that are playing audio, ie in the Active state
+                var score = 0;
+                if (sessionGroup.State == AudioSessionState.AudioSessionStateActive)
+                {
+                    score = 50;
+                }
+
+                results.Add(new Result{
+                    Title = sessionGroup.Name,
+                    SubTitle = $"{sessionState} | Volume: {sessionGroup.GetVolumeString()} | Muted: {sessionGroup.IsMuted}",
+                    IcoPath = sessionGroup.IconPath,
+                    ContextData = sessionGroup,
+                    Score = score,
+                    Action = _ =>
+                    {
+                        selectedSession = sessionGroup;
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {sessionGroup.Name} >");
+                        return false;
+                    }
+                });
+            }
+
+            return results;
+        }
+
+        private List<AudioSessionGroup> GetAudioSessionGroups(string filter)
+        {
+
+            MMDeviceCollection audioDeviceEndpoints = deviceEnumerator.EnumerateAudioEndPoints(
+                DataFlow.Render, // Output devices
+                DeviceState.Active
+            );
+
+            Dictionary<string, AudioSessionGroup> audioSessionGroups = new Dictionary<string, AudioSessionGroup>();
+
             foreach (var device in audioDeviceEndpoints)
             {
 
@@ -68,44 +115,28 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     var sessionInfo = new AudioSession(sessions[i]);
 
                     // skip sessions without a name matching the search query
-                    if (!string.IsNullOrEmpty(query.Search) &&
-                        !sessionInfo.Name.Contains(query.Search, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(filter) &&
+                        !sessionInfo.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    string sessionState = sessionInfo.State switch
-                    {
-                        AudioSessionState.AudioSessionStateActive => "Active",
-                        AudioSessionState.AudioSessionStateInactive => "Inactive",
-                        AudioSessionState.AudioSessionStateExpired => "Expired",
-                        _ => "Unknown"
-                    };
+                    AudioSessionGroup sessionGroup;
 
-                    // Prioritize audio sessions that are playing audio, ie in the Active state
-                    var score = 0;
-                    if (sessionInfo.State == AudioSessionState.AudioSessionStateActive)
+                    if (audioSessionGroups.ContainsKey(sessionInfo.Name))
                     {
-                        score = 50;
+                        audioSessionGroups[sessionInfo.Name].AudioSessions.Add(sessionInfo);
+                        continue;
                     }
-
-                    results.Add(new Result{
-                        Title = sessionInfo.Name,
-                        SubTitle = $"{sessionState} | Volume: {Math.Round(sessionInfo.Volume * 100)}% | Muted: {sessionInfo.IsMuted}",
-                        IcoPath = sessionInfo.IconPath,
-                        ContextData = sessionInfo,
-                        Score = score,
-                        Action = _ =>
-                        {
-                            selectedSession = sessionInfo;
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {sessionInfo.Name} >");
-                            return false;
-                        }
-                    });
+                    else
+                    {
+                        sessionGroup = new AudioSessionGroup(sessionInfo);
+                        audioSessionGroups.Add(sessionInfo.Name, sessionGroup);
+                    }
                 }
             }
 
-            return results;
+            return audioSessionGroups.Values.ToList();
         }
 
         public float ParseVolumeQuery(string queryString, string keyword, float defaultVolume=0.05f)
@@ -124,7 +155,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             return parsedVolume / 100f;
         }
 
-        public List<ActionOption> getOptions(string queryString, AudioSession session)
+        public List<ActionOption> getOptions(string queryString, AudioSessionGroup session)
         {
             var results = new List<Result>();
 
@@ -155,7 +186,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 {
                     Title = "Increase Volume",
                     Glyph = new GlyphInfo("sans-serif", "+"),
-                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    SubTitle = $"Current volume: {session.GetVolumeString()}",
                     Action = _ =>
                     {
                         _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol+ ");
@@ -177,10 +208,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         {
                             Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
                             Glyph = new GlyphInfo("sans-serif", "+"),
-                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            SubTitle = $"Current volume: {session.GetVolumeString()}",
                             Action = _ =>
                             {
-                                session.Volume += increaseAmount;
+                                session.addVolume(increaseAmount);
 
                                 _context.API.ReQuery();
                                 return true;
@@ -197,7 +228,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 {
                     Title = "Decrease Volume",
                     Glyph = new GlyphInfo("sans-serif", "-"),
-                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    SubTitle = $"Current volume: {session.GetVolumeString()}",
                     Action = _ =>
                     {
                         _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol- ");
@@ -219,10 +250,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         {
                             Title = $"Decrease Volume by {Math.Round(decreaseAmount * 100)}%",
                             Glyph = new GlyphInfo("sans-serif", "-"),
-                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            SubTitle = $"Current volume: {session.GetVolumeString()}",
                             Action = _ =>
                             {
-                                session.Volume -= decreaseAmount;
+                                session.addVolume(-decreaseAmount);
 
                                 _context.API.ReQuery();
                                 return true;
@@ -239,7 +270,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 {
                     Title = "Set Volume",
                     Glyph = new GlyphInfo("sans-serif", "="),
-                    SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                    SubTitle = $"Current volume: {session.GetVolumeString()}",
                     Action = _ =>
                     {
                         _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {session.Name} > vol= ");
@@ -261,10 +292,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         {
                             Title = $"Set Volume to {Math.Round(targetVolume * 100)}%",
                             Glyph = new GlyphInfo("sans-serif", "="),
-                            SubTitle = $"Current volume: {Math.Round(session.Volume * 100)}%",
+                            SubTitle = $"Current volume: {session.GetVolumeString()}",
                             Action = _ =>
                             {
-                                session.Volume = targetVolume;
+                                session.setVolume(targetVolume);
 
                                 _context.API.ReQuery();
                                 return true;
@@ -312,7 +343,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
         public List<Result> LoadContextMenus(Result selectedResult)
         {
             var results = new List<Result>();
-            var session = (AudioSession)selectedResult.ContextData;
+            var session = (AudioSessionGroup)selectedResult.ContextData;
 
             results.Add( new Result
             {
@@ -326,14 +357,20 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 }
             });
 
+            List<int> processIDs = session.AudioSessions.ConvertAll((a)=>a.ProcessId);
+            string processIDString = string.Join(",",processIDs);
+            string title = processIDs.Count == 1 ?
+                "Copy Process ID to Clipboard"
+                : "Copy Process IDs to Clipboard";
+
             results.Add( new Result
             {
-                Title = "Copy Process ID to Clipboard",
-                SubTitle = session.ProcessId.ToString(),
+                Title = title,
+                SubTitle = processIDString,
                 Glyph = new GlyphInfo("sans-serif", "ID"),
                 Action = _ =>
                 {
-                    _context.API.CopyToClipboard(session.ProcessId.ToString());
+                    _context.API.CopyToClipboard(processIDString);
                     return true;
                 }
             });
