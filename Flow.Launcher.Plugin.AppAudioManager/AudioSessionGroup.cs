@@ -90,6 +90,12 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             );
             double maxVolumePercent = Math.Round(maxVolume * 100);
 
+            // no need for range if they are the same
+            if (minVolume == maxVolume)
+            {
+                return $"{minVolumePercent}%";
+            }
+
             return $"{minVolumePercent} - {maxVolumePercent}%";
 
         }
