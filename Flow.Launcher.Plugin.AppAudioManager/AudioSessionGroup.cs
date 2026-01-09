@@ -114,5 +114,12 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             this.Name = audioSessions[0].Name;
             this.IconPath = audioSessions[0].IconPath;
         }
+
+        public void Dispose()
+        {
+            AudioSessions.ForEach(
+                    (a)=>a.Dispose()
+            );
+        }
     }
 }
