@@ -57,6 +57,51 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 DeviceState.Active
             );
 
+            List<AudioSessionGroup> audioSessionGroups = GetAudioSessionGroups(filter: query.Search);
+
+            foreach (var sessionGroup in audioSessionGroups)
+            {
+                string sessionState = sessionGroup.State switch
+                {
+                    AudioSessionState.AudioSessionStateActive => "Active",
+                    AudioSessionState.AudioSessionStateInactive => "Inactive",
+                    AudioSessionState.AudioSessionStateExpired => "Expired",
+                    _ => "Unknown"
+                };
+
+                // Prioritize audio sessions that are playing audio, ie in the Active state
+                var score = 0;
+                if (sessionGroup.State == AudioSessionState.AudioSessionStateActive)
+                {
+                    score = 50;
+                }
+
+                results.Add(new Result{
+                    Title = sessionGroup.Name,
+                    SubTitle = $"{sessionState} | Volume: {sessionGroup.GetVolumeString()} | Muted: {sessionGroup.IsMuted}",
+                    IcoPath = sessionGroup.IconPath,
+                    ContextData = sessionGroup,
+                    Score = score,
+                    Action = _ =>
+                    {
+                        selectedSession = sessionGroup;
+                        _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {sessionGroup.Name} >");
+                        return false;
+                    }
+                });
+            }
+
+            return results;
+        }
+
+        private List<AudioSessionGroup> GetAudioSessionGroups(string filter)
+        {
+
+            MMDeviceCollection audioDeviceEndpoints = deviceEnumerator.EnumerateAudioEndPoints(
+                DataFlow.Render, // Output devices
+                DeviceState.Active
+            );
+
             Dictionary<string, AudioSessionGroup> audioSessionGroups = new Dictionary<string, AudioSessionGroup>();
 
             foreach (var device in audioDeviceEndpoints)
@@ -70,8 +115,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     var sessionInfo = new AudioSession(sessions[i]);
 
                     // skip sessions without a name matching the search query
-                    if (!string.IsNullOrEmpty(query.Search) &&
-                        !sessionInfo.Name.Contains(query.Search, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(filter) &&
+                        !sessionInfo.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
@@ -88,41 +133,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         sessionGroup = new AudioSessionGroup(sessionInfo);
                         audioSessionGroups.Add(sessionInfo.Name, sessionGroup);
                     }
-
-                    
-
-                    string sessionState = sessionGroup.State switch
-                    {
-                        AudioSessionState.AudioSessionStateActive => "Active",
-                        AudioSessionState.AudioSessionStateInactive => "Inactive",
-                        AudioSessionState.AudioSessionStateExpired => "Expired",
-                        _ => "Unknown"
-                    };
-
-                    // Prioritize audio sessions that are playing audio, ie in the Active state
-                    var score = 0;
-                    if (sessionGroup.State == AudioSessionState.AudioSessionStateActive)
-                    {
-                        score = 50;
-                    }
-
-                    results.Add(new Result{
-                        Title = sessionGroup.Name,
-                        SubTitle = $"{sessionState} | Volume: {sessionGroup.GetVolumeString()} | Muted: {sessionGroup.IsMuted}",
-                        IcoPath = sessionGroup.IconPath,
-                        ContextData = sessionGroup,
-                        Score = score,
-                        Action = _ =>
-                        {
-                            selectedSession = sessionGroup;
-                            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeyword} {sessionGroup.Name} >");
-                            return false;
-                        }
-                    });
                 }
             }
 
-            return results;
+            return audioSessionGroups.Values.ToList();
         }
 
         public float ParseVolumeQuery(string queryString, string keyword, float defaultVolume=0.05f)
