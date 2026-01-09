@@ -53,6 +53,11 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             }
         }
 
+        public void ToggleMute()
+        {
+            this.IsMuted = !this.IsMuted;
+        }
+
         public void setVolume(float value)
         {
             AudioSessions.ForEach(
