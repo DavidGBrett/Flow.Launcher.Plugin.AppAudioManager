@@ -46,7 +46,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 && session.DisplayName.StartsWith("@%SystemRoot%\\System32\\AudioSrv.Dll")
             ){
                 Name = "System Sounds";
-                IconPath = "";
+                IconPath = "Assets/SystemSoundsIcon.png";
                 return;
             }
 
