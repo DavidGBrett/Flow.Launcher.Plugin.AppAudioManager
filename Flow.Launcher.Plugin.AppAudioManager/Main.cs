@@ -92,8 +92,13 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 var score = 0;
                 if (sessionGroup.State == AudioSessionState.AudioSessionStateActive)
                 {
-                    score = 50;
+                    score += 50;
                 }
+                if (sessionGroup.IsMuted)
+                {
+                    score += 20;
+                }
+
 
                 results.Add(new Result{
                     Title = sessionGroup.Name,
