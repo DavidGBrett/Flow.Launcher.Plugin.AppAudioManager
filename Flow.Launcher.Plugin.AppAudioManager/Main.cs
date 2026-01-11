@@ -33,9 +33,33 @@ namespace Flow.Launcher.Plugin.AppAudioManager
         {
             var results = new List<Result>();
 
+            List<AudioSessionGroup> audioSessionGroups;
+
             if (query.Search.Contains(">"))
             {
                 var session = selectedSession;
+
+                // This means the user manually typed the > instead,
+                // we can try to use an exact match if possible
+                if (session is null)
+                {
+                    var selectedSessionName = query.Search.Split(">")[0].Trim();
+
+                    audioSessionGroups = GetAudioSessionGroups(filter: selectedSessionName);
+
+                    // check which sessions exactly match the name
+                    var exactMatches = audioSessionGroups.FindAll(
+                        (s)=>s.Name.Equals(selectedSessionName, StringComparison.OrdinalIgnoreCase)
+                    );
+
+                    // if there is a single session that exactly matches the name
+                    if (exactMatches.Count() == 1) {
+                        session = audioSessionGroups[0];
+                    } 
+                    else {
+                        return results;
+                    }
+                }
 
                 var availableOptions = getOptions(
                     queryString: query.Search,
@@ -57,7 +81,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 DeviceState.Active
             );
 
-            List<AudioSessionGroup> audioSessionGroups = GetAudioSessionGroups(filter: query.Search);
+            audioSessionGroups = GetAudioSessionGroups(filter: query.Search);
 
             foreach (var sessionGroup in audioSessionGroups)
             {
