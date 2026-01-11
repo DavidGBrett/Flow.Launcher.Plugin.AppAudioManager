@@ -76,11 +76,6 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             selectedSession = null;
 
-            MMDeviceCollection audioDeviceEndpoints = deviceEnumerator.EnumerateAudioEndPoints(
-                DataFlow.Render, // Output devices
-                DeviceState.Active
-            );
-
             audioSessionGroups = GetAudioSessionGroups(filter: query.Search);
 
             foreach (var sessionGroup in audioSessionGroups)
