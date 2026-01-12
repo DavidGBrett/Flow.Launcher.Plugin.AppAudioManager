@@ -98,7 +98,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 {
                     score += 20;
                 }
-
+                if (sessionGroup.AudioSessions.Any((s)=>s.Volume != 1))
+                {
+                    score += 10;
+                }
 
                 results.Add(new Result{
                     Title = sessionGroup.Name,
