@@ -11,6 +11,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
         private AudioSessionControl _session;
         public string Name { get; }
         public int ProcessId { get;}
+        public string? ProcessFilePath { get; }
         public string IconPath { get; }
         public AudioSessionState State
         {
@@ -85,7 +86,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 referenceProcess = parentProcess;
             }
             Name = GetBestName(_session, referenceProcess);
-            IconPath = GetIconPath(_session, referenceProcess);
+            ProcessFilePath = GetProcessFilePath(process: referenceProcess);
+            IconPath = GetIconPath(_session, ProcessFilePath);
 
             if (sessionProcess is not null) sessionProcess.Dispose();
             if (parentProcess is not null) parentProcess.Dispose();
@@ -115,14 +117,9 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             return "Unknown";
         }
-    
-        private static string GetIconPath(AudioSessionControl session, Process process)
-        {
-            if (!string.IsNullOrEmpty(session.IconPath))
-            {
-                return session.IconPath;
-            }
 
+        private static string? GetProcessFilePath(Process process)
+        {
             if (process != null)
             {
                 try{
@@ -131,6 +128,17 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     ex is InvalidOperationException or NotSupportedException or System.ComponentModel.Win32Exception) 
                     {  /* Ignore */ }
             }
+            return null;
+        }
+    
+        private static string GetIconPath(AudioSessionControl session, string? ProcessFilePath)
+        {
+            if (!string.IsNullOrEmpty(session.IconPath))
+            {
+                return session.IconPath;
+            }
+
+            if (ProcessFilePath != null) return ProcessFilePath;
 
             return string.Empty;
         }
