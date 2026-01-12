@@ -88,19 +88,12 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     _ => "Unknown"
                 };
 
-                // Prioritize audio sessions that are playing audio, ie in the Active state
-                var score = 0;
-                if (sessionGroup.State == AudioSessionState.AudioSessionStateActive)
-                {
-                    score = 50;
-                }
-
                 results.Add(new Result{
                     Title = sessionGroup.Name,
                     SubTitle = $"{sessionState} | Volume: {sessionGroup.GetVolumeString()} | Muted: {sessionGroup.IsMuted}",
                     IcoPath = sessionGroup.IconPath,
                     ContextData = sessionGroup,
-                    Score = score,
+                    Score = scoreSessionGroup(sessionGroup),
                     Action = _ =>
                     {
                         selectedSession = sessionGroup;
@@ -156,6 +149,31 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             }
 
             return audioSessionGroups.Values.ToList();
+        }
+
+        private int scoreSessionGroup(AudioSessionGroup audioSessionGroup)
+        {
+            var score = 0;
+
+            // prioritize active state, ie playing audio
+            if (audioSessionGroup.State == AudioSessionState.AudioSessionStateActive)
+            {
+                score += 50;
+            }
+
+            // prioritise muted
+            if (audioSessionGroup.IsMuted)
+            {
+                score += 20;
+            }
+
+            // prioritise any group where a session is not at max volume
+            if (audioSessionGroup.AudioSessions.Any((s)=>s.Volume != 1))
+            {
+                score += 10;
+            }
+
+            return score;
         }
 
         public float ParseVolumeQuery(string queryString, string keyword, float defaultVolume=0.05f)
