@@ -396,13 +396,11 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             List<int> processIDs = session.AudioSessions.ConvertAll((a)=>a.ProcessId);
             string processIDString = string.Join(",",processIDs);
-            string title = processIDs.Count == 1 ?
-                "Copy Process ID to Clipboard"
-                : "Copy Process IDs to Clipboard";
-
             results.Add( new Result
             {
-                Title = title,
+                Title = processIDs.Count == 1 ?
+                "Copy Process ID to Clipboard"
+                : "Copy Process IDs to Clipboard",
                 SubTitle = processIDString,
                 Glyph = new GlyphInfo("sans-serif", "ID"),
                 Action = _ =>
