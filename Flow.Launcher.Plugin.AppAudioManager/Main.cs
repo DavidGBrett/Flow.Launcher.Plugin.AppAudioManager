@@ -412,14 +412,22 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 }
             });
 
+
+            List<string> processPaths = session.AudioSessions
+            .Select((a)=>a.ProcessFilePath)
+            .Distinct()
+            .ToList();
+            string processPathString = string.Join(",",processPaths);
             results.Add( new Result
             {
-                Title = "Copy Icon File Path to Clipboard",
-                SubTitle = session.IconPath,
-                IcoPath = session.IconPath,
+                Title = processPaths.Count == 1 ?
+                "Copy Process Path to Clipboard"
+                : "Copy Paths of Grouped Processes to Clipboard",
+                SubTitle = processPathString,
+                Glyph = new GlyphInfo("sans-serif", "/"),
                 Action = _ =>
                 {
-                    _context.API.CopyToClipboard(session.IconPath);
+                    _context.API.CopyToClipboard(processPathString);
                     return true;
                 }
             });
