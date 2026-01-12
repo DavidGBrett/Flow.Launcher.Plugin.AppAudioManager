@@ -424,7 +424,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 "Copy Process Path to Clipboard"
                 : "Copy Paths of Grouped Processes to Clipboard",
                 SubTitle = processPathString,
-                Glyph = new GlyphInfo("sans-serif", "/"),
+                Glyph = new GlyphInfo("sans-serif", " \\"),
                 Action = _ =>
                 {
                     _context.API.CopyToClipboard(processPathString);
