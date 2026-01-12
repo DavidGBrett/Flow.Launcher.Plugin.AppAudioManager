@@ -42,12 +42,16 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             ProcessId = (int)_session.GetProcessID;
 
             // First check if this is the system sounds
+            var systemSoundsIdentifier = "@%SystemRoot%\\System32\\AudioSrv.Dll";
             if (
                 !string.IsNullOrEmpty(session.DisplayName) 
-                && session.DisplayName.StartsWith("@%SystemRoot%\\System32\\AudioSrv.Dll")
+                && session.DisplayName.StartsWith(systemSoundsIdentifier)
             ){
                 Name = "System Sounds";
                 IconPath = "Assets/SystemSoundsIcon.png";
+                
+                // expand identifier and remove @ to get path
+                ProcessFilePath = Environment.ExpandEnvironmentVariables(systemSoundsIdentifier).Substring(1); 
                 return;
             }
 
