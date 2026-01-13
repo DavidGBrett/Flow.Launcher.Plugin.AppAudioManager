@@ -137,11 +137,14 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 } catch (Exception){}
             }
             
-            // if not UWP app
-            else
+            // Ensure if alternative attempts fail we still try to get the Name etc
+            if (Name is null)
             {
                 Name = GetBestName(_session, referenceProcess);
+            }
             
+            if (IconPath is null)
+            {
                 IconPath = GetIconPath(_session, ProcessFilePath);
             }
             
