@@ -129,17 +129,9 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                             propLogoRelPath
                         );
 
-                        string logoBaseName = Path.GetFileNameWithoutExtension(logoManifestPath);
-                        string logoExtension = Path.GetExtension(logoManifestPath);
-                        string logoFolder = Path.GetDirectoryName(logoManifestPath);
+                        var varients = UWPResourceResolver.FindAllVariants(logoManifestPath);
 
-                        int[] scales = { 400, 200, 150, 125, 100 };
-
-                        string logoBestScaledPath = scales
-                        .Select(scale => Path.Combine(logoFolder, $"{logoBaseName}.scale-{scale}{logoExtension}"))
-                        .FirstOrDefault(File.Exists, null);
-
-                        IconPath = logoBestScaledPath ?? logoManifestPath;
+                        IconPath = varients.ElementAtOrDefault(0);
                     }
                     
                 } catch (Exception){}
