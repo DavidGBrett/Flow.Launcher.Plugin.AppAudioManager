@@ -15,10 +15,11 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             string baseName = Path.GetFileNameWithoutExtension(manifestPath);
             string extension = Path.GetExtension(manifestPath);
             
-            // Pattern: basename.qualifier-value.qualifier-value.extension
-            var matches = Directory.GetFiles(directory, baseName + ".*" + extension);
+            // Pattern: /qualifier-value/qualifier-value/basename.qualifier-value.qualifier-value.extension
+            var matches = Directory.GetFiles(directory, baseName + ".*" + extension, SearchOption.AllDirectories);
 
             return matches.ToList();
         }
+
     }
 }
