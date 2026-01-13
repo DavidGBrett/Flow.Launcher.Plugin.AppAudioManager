@@ -129,9 +129,9 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                             propLogoRelPath
                         );
 
-                        var varients = UWPResourceResolver.FindAllVariants(logoManifestPath);
+                        var variants = UWPResourceResolver.FindAllVariants(logoManifestPath);
 
-                        IconPath = varients.ElementAtOrDefault(0);
+                        IconPath = variants.ElementAtOrDefault(0);
                     }
                     
                 } catch (Exception){}
