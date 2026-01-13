@@ -107,44 +107,40 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 string manifestPath = Path.Combine(appFolderPath, "AppxManifest.xml");
                 try
                 {
-                    XDocument doc = XDocument.Load(manifestPath);
-                    
-                    // Get the DisplayName using XML namespaces
-                    XNamespace defaultNamespace = doc.Root.GetDefaultNamespace();
-                    
-                    Name = doc.Root?
-                        .Element(defaultNamespace + "Properties")?
-                        .Element(defaultNamespace + "DisplayName")?
-                        .Value;
+                    var xmlParser = new XMLParser(filePath: manifestPath);
 
-                    if (string.IsNullOrEmpty(Name))
+                    if (xmlParser.TryGetValueByUnqualifiedPath(
+                        out string propDisplayName,
+                        "Properties",
+                        "DisplayName"
+                    ))
                     {
-                        // Try without namespace as fallback
-                        Name = doc.Root?
-                            .Element("Properties")?
-                            .Element("DisplayName")?
-                            .Value;
+                        Name = propDisplayName;
                     }
 
-                    string logoManifestPath = Path.Combine(
-                        appFolderPath,
-                        doc.Root?
-                        .Element(defaultNamespace + "Properties")?
-                        .Element(defaultNamespace + "Logo")?
-                        .Value
-                    );
+                    if (xmlParser.TryGetValueByUnqualifiedPath(
+                        out string propLogoRelPath,
+                        "Properties",
+                        "Logo"
+                    ))
+                    {
+                        string logoManifestPath = Path.Combine(
+                            appFolderPath,
+                            propLogoRelPath
+                        );
 
-                    string logoBaseName = Path.GetFileNameWithoutExtension(logoManifestPath);
-                    string logoExtension = Path.GetExtension(logoManifestPath);
-                    string logoFolder = Path.GetDirectoryName(logoManifestPath);
+                        string logoBaseName = Path.GetFileNameWithoutExtension(logoManifestPath);
+                        string logoExtension = Path.GetExtension(logoManifestPath);
+                        string logoFolder = Path.GetDirectoryName(logoManifestPath);
 
-                    int[] scales = { 400, 200, 150, 125, 100 };
+                        int[] scales = { 400, 200, 150, 125, 100 };
 
-                    string logoBestScaledPath = scales
-                    .Select(scale => Path.Combine(logoFolder, $"{logoBaseName}.scale-{scale}{logoExtension}"))
-                    .FirstOrDefault(File.Exists, null);
+                        string logoBestScaledPath = scales
+                        .Select(scale => Path.Combine(logoFolder, $"{logoBaseName}.scale-{scale}{logoExtension}"))
+                        .FirstOrDefault(File.Exists, null);
 
-                    IconPath = logoBestScaledPath ?? logoManifestPath;
+                        IconPath = logoBestScaledPath ?? logoManifestPath;
+                    }
                     
                 } catch (Exception){}
             }
