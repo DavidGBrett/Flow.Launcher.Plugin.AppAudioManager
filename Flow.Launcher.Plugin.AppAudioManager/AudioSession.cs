@@ -109,7 +109,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 {
                     var xmlParser = new XMLParser(filePath: manifestPath);
 
-                    if (xmlParser.TryGetValueByUnqualifiedPath(
+                    if (xmlParser.TryGetValueByPath(
                         out string propDisplayName,
                         "Properties",
                         "DisplayName"
@@ -117,8 +117,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     {
                         Name = propDisplayName;
                     }
-
-                    if (xmlParser.TryGetValueByUnqualifiedPath(
+                    
+                    if (xmlParser.TryGetValueByPath(
                         out string propLogoRelPath,
                         "Properties",
                         "Logo"

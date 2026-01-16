@@ -15,35 +15,40 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             DefaultNamespace = XMLDoc.Root.GetDefaultNamespace();
         }
 
-        public bool TryGetValueByUnqualifiedPath(out string? value,params string[] pathSegments)
+        public bool TryGetValueByPath(out string? value,params string[] pathSegments)
         {
-            value =  GetElementByUnqualifiedPath(pathSegments)?.Value;
+            value =  GetElementByPath(pathSegments)?.Value;
             return value != null;
         }
 
-        public XElement? GetElementByUnqualifiedPath(params string[] pathSegments)
+        public XElement? GetElementByPath(params string[] pathSegments)
         {
             XElement root = XMLDoc.Root;
             if (root == null) return null;
-
-            // Try with namespace first
+            
             XElement current = root;
             foreach (var segment in pathSegments)
             {
-                current = current?.Element(DefaultNamespace + segment);
+                var segmentParts = segment.Split(":",2);
+
+                if (segmentParts.Length == 1)
+                {
+                    current = current?.Element(DefaultNamespace + segment);
+                }
+                else 
+                {
+                    var prefix = segmentParts[0];
+                    var localName = segmentParts[1];
+                    var ns = XMLDoc.Root.GetNamespaceOfPrefix(prefix);
+                    current = current?.Element(ns + localName);
+                }
+                
                 if (current == null) break;
             }
             
             if (current != null)
                 return current;
-            
-            // Fallback: try without namespace
-            current = root;
-            foreach (var segment in pathSegments)
-            {
-                current = current?.Element(segment);
-                if (current == null) break;
-            }
+        
             
             return current;
         }
