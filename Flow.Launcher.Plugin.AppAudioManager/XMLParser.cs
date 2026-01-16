@@ -20,6 +20,17 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             value =  GetElementByPath(pathSegments)?.Value;
             return value != null;
         }
+        public bool TryGetElementByPath(out XElement? element,params string[] pathSegments)
+        {
+            element =  GetElementByPath(pathSegments);
+            return element != null;
+        }
+
+        public bool TryGetAttributeValue(out string? value, XElement element, string attributeName)
+        {
+            value =  element.Attribute(attributeName)?.Value;
+            return value != null;
+        }
 
         public XElement? GetElementByPath(params string[] pathSegments)
         {
