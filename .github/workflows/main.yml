@@ -30,7 +30,7 @@ jobs:
       - name: Build
         run: |
           dotnet publish Flow.Launcher.Plugin.AppAudioManager -c Release -r win-x64 --no-self-contained
-          Compress-Archive -LiteralPath Flow.Launcher.Plugin.AppAudioManager/bin/Release/win-x64/publish -DestinationPath "./Flow.Launcher.Plugin.AppAudioManager-v${{steps.version.outputs.prop}}.zip" -Force
+          Compress-Archive -Path Flow.Launcher.Plugin.AppAudioManager/bin/Release/win-x64/publish/* -DestinationPath "./Flow.Launcher.Plugin.AppAudioManager-v${{steps.version.outputs.prop}}.zip" -Force
 
       - name: Publish
         uses: softprops/action-gh-release@v1
