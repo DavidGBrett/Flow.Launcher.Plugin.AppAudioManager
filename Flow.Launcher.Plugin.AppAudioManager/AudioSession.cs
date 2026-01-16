@@ -117,8 +117,30 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     {
                         Name = propDisplayName;
                     }
-                    
-                    if (xmlParser.TryGetValueByPath(
+
+                    if (xmlParser.TryGetElementByPath(
+                        out XElement visualElements,
+                        "Applications",
+                        "Application",
+                        "uap:VisualElements"
+                    ) 
+                    &&
+                    xmlParser.TryGetAttributeValue(
+                        out string square44LogoRelPath,
+                        element: visualElements,
+                        attributeName: "Square44x44Logo"
+                    )
+                    ){
+                        string logoManifestPath = Path.Combine(
+                            appFolderPath,
+                            square44LogoRelPath
+                        );
+
+                        var variants = UWPResourceResolver.FindAllVariants(logoManifestPath);
+
+                        IconPath = variants.ElementAtOrDefault(0);
+                    }
+                    else if (xmlParser.TryGetValueByPath(
                         out string propLogoRelPath,
                         "Properties",
                         "Logo"
