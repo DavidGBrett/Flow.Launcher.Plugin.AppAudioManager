@@ -222,7 +222,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 CreateResult: () => new Result
                 {
                     Title = "Increase Volume",
-                    Glyph = new GlyphInfo("sans-serif", "+"),
+                    Glyph = new GlyphInfo("sans-serif", "＋"),
                     SubTitle = $"Current volume: {session.GetVolumeString()}",
                     Action = _ =>
                     {
@@ -244,7 +244,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         return new Result
                         {
                             Title = $"Increase Volume by {Math.Round(increaseAmount * 100)}%",
-                            Glyph = new GlyphInfo("sans-serif", "+"),
+                            Glyph = new GlyphInfo("sans-serif", "＋"),
                             SubTitle = $"Current volume: {session.GetVolumeString()}",
                             Action = _ =>
                             {
@@ -264,7 +264,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 CreateResult: () => new Result
                 {
                     Title = "Decrease Volume",
-                    Glyph = new GlyphInfo("sans-serif", "-"),
+                    Glyph = new GlyphInfo("sans-serif", "－"),
                     SubTitle = $"Current volume: {session.GetVolumeString()}",
                     Action = _ =>
                     {
@@ -286,7 +286,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         return new Result
                         {
                             Title = $"Decrease Volume by {Math.Round(decreaseAmount * 100)}%",
-                            Glyph = new GlyphInfo("sans-serif", "-"),
+                            Glyph = new GlyphInfo("sans-serif", "－"),
                             SubTitle = $"Current volume: {session.GetVolumeString()}",
                             Action = _ =>
                             {
@@ -306,7 +306,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 CreateResult: () => new Result
                 {
                     Title = "Set Volume",
-                    Glyph = new GlyphInfo("sans-serif", "="),
+                    Glyph = new GlyphInfo("sans-serif", "＝"),
                     SubTitle = $"Current volume: {session.GetVolumeString()}",
                     Action = _ =>
                     {
@@ -328,7 +328,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                         return new Result
                         {
                             Title = $"Set Volume to {Math.Round(targetVolume * 100)}%",
-                            Glyph = new GlyphInfo("sans-serif", "="),
+                            Glyph = new GlyphInfo("sans-serif", "＝"),
                             SubTitle = $"Current volume: {session.GetVolumeString()}",
                             Action = _ =>
                             {
@@ -386,7 +386,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             {
                 Title = "Copy Name to Clipboard",
                 SubTitle = session.Name,
-                Glyph = new GlyphInfo("sans-serif", "N"),
+                Glyph = new GlyphInfo("sans-serif", "Ｎ"),
                 Action = _ =>
                 {
                     _context.API.CopyToClipboard(session.Name);
