@@ -2,7 +2,7 @@
     <img src="Flow.Launcher.Plugin.AppAudioManager\Assets\PluginIcon.png" alt="App Audio Manager Plugin Icon" height="120">
 </p>
 
-#App Audio Manager for Flow Launcher
+# App Audio Manager for Flow Launcher
 
 
 Control the volume and mute state of individual applications directly from [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).
