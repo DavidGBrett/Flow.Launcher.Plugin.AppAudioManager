@@ -22,3 +22,7 @@ Control the volume and mute state of individual applications directly from [Flow
 ### Manual Debug Install
 1. Download this repository
 2. Run the file ``debug.ps1``
+
+License
+-------
+MIT - See LICENSE file for details.
