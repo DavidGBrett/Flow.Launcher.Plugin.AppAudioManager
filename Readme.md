@@ -4,6 +4,10 @@
 
 # App Audio Manager for Flow Launcher
 
+<p align="center">
+<a href="https://github.com/DavidGBrett/Flow.Launcher.Plugin.AppAudioManager/releases"><img src="https://img.shields.io/github/downloads/DavidGBrett/Flow.Launcher.Plugin.AppAudioManager/total.svg"></a>
+<a href="https://github.com/DavidGBrett/Flow.Launcher.Plugin.AppAudioManager/releases/latest"><img src="https://img.shields.io/github/v/release/DavidGBrett/Flow.Launcher.Plugin.AppAudioManager"></a>
+</p>
 
 Control the volume and mute state of individual applications directly from [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).
 
