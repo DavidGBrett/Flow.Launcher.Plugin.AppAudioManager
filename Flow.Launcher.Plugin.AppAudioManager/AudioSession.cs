@@ -3,10 +3,12 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Xml.Linq;
 using Microsoft.VisualBasic.Devices;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
+using Windows.Management.Deployment;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
@@ -104,18 +106,39 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 var startIndex = ProcessFilePath.IndexOf("WindowsApps\\") + "WindowsApps\\".Length;
                 var appFolderPath = ProcessFilePath.Substring(0,ProcessFilePath.IndexOf("\\", startIndex) + 1);
 
+                string packageFullName = new DirectoryInfo(appFolderPath).Name;
+
+                var packageManager = new PackageManager();
+                string currentUserSid = WindowsIdentity.GetCurrent().User.Value;
+
+                var package = packageManager.FindPackageForUser(currentUserSid, packageFullName);
+
+                if (package != null)
+                {
+                    var appEntry = package.GetAppListEntries().FirstOrDefault();
+                    
+                    if (appEntry != null)
+                    {
+                        Name = appEntry.DisplayInfo.DisplayName;
+                    }
+                }
+
+
                 string manifestPath = Path.Combine(appFolderPath, "AppxManifest.xml");
                 try
                 {
                     var xmlParser = new XMLParser(filePath: manifestPath);
 
-                    if (xmlParser.TryGetValueByPath(
-                        out string propDisplayName,
-                        "Properties",
-                        "DisplayName"
-                    ))
-                    {
+                    if (
+                        Name is null &&
+                        xmlParser.TryGetValueByPath(
+                            out string propDisplayName,
+                            "Properties",
+                            "DisplayName"
+                        )
+                    ){
                         Name = propDisplayName;
+                        
                     }
 
                     if (xmlParser.TryGetElementByPath(
@@ -155,7 +178,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
                         IconPath = variants.ElementAtOrDefault(0);
                     }
-                    
+   
                 } catch (Exception){}
             }
             
