@@ -152,7 +152,9 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             // if we found the parent process use it
             if (parentProcess is not null)
             {
-                if (sessionProcess is not null) sessionProcess.Dispose();
+                // make sure to dispose sessionProcess if its not the same as parentProcess
+                if (sessionProcess is not null && sessionProcess != parentProcess) sessionProcess.Dispose();
+
                 return parentProcess;
             }
 
