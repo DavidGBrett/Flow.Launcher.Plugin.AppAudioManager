@@ -1,8 +1,14 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Security.Principal;
+using System.Xml.Linq;
 using Microsoft.VisualBasic.Devices;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
+using Windows.Management.Deployment;
 
 namespace Flow.Launcher.Plugin.AppAudioManager
 {
@@ -89,9 +95,104 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             {
                 referenceProcess = parentProcess;
             }
-            Name = GetBestName(_session, referenceProcess);
+
             ProcessFilePath = GetProcessFilePath(process: referenceProcess);
-            IconPath = GetIconPath(_session, ProcessFilePath);
+
+            // if this is an UWP app
+            if (ProcessFilePath.StartsWith(
+                "C:\\Program Files\\WindowsApps\\"
+                // Environment.ExpandEnvironmentVariables("%SystemRoot%\\Program Files\\WindowsApps\\")
+            )){
+                var startIndex = ProcessFilePath.IndexOf("WindowsApps\\") + "WindowsApps\\".Length;
+                var appFolderPath = ProcessFilePath.Substring(0,ProcessFilePath.IndexOf("\\", startIndex) + 1);
+
+                string packageFullName = new DirectoryInfo(appFolderPath).Name;
+
+                var packageManager = new PackageManager();
+                string currentUserSid = WindowsIdentity.GetCurrent().User.Value;
+
+                var package = packageManager.FindPackageForUser(currentUserSid, packageFullName);
+
+                if (package != null)
+                {
+                    var appEntry = package.GetAppListEntries().FirstOrDefault();
+                    
+                    if (appEntry != null)
+                    {
+                        Name = appEntry.DisplayInfo.DisplayName;
+                    }
+                }
+
+
+                string manifestPath = Path.Combine(appFolderPath, "AppxManifest.xml");
+                try
+                {
+                    var xmlParser = new XMLParser(filePath: manifestPath);
+
+                    if (
+                        Name is null &&
+                        xmlParser.TryGetValueByPath(
+                            out string propDisplayName,
+                            "Properties",
+                            "DisplayName"
+                        )
+                    ){
+                        Name = propDisplayName;
+                        
+                    }
+
+                    if (xmlParser.TryGetElementByPath(
+                        out XElement visualElements,
+                        "Applications",
+                        "Application",
+                        "uap:VisualElements"
+                    ) 
+                    &&
+                    xmlParser.TryGetAttributeValue(
+                        out string square44LogoRelPath,
+                        element: visualElements,
+                        attributeName: "Square44x44Logo"
+                    )
+                    ){
+                        string logoManifestPath = Path.Combine(
+                            appFolderPath,
+                            square44LogoRelPath
+                        );
+
+                        var variants = UWPResourceResolver.FindAllVariants(logoManifestPath);
+
+                        IconPath = variants.ElementAtOrDefault(0);
+                    }
+                    else if (xmlParser.TryGetValueByPath(
+                        out string propLogoRelPath,
+                        "Properties",
+                        "Logo"
+                    ))
+                    {
+                        string logoManifestPath = Path.Combine(
+                            appFolderPath,
+                            propLogoRelPath
+                        );
+
+                        var variants = UWPResourceResolver.FindAllVariants(logoManifestPath);
+
+                        IconPath = variants.ElementAtOrDefault(0);
+                    }
+   
+                } catch (Exception){}
+            }
+            
+            // Ensure if alternative attempts fail we still try to get the Name etc
+            if (Name is null)
+            {
+                Name = GetBestName(_session, referenceProcess);
+            }
+            
+            if (IconPath is null)
+            {
+                IconPath = GetIconPath(_session, ProcessFilePath);
+            }
+            
 
             if (sessionProcess is not null) sessionProcess.Dispose();
             if (parentProcess is not null) parentProcess.Dispose();

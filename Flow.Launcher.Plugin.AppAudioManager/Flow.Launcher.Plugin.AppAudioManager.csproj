@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows10.0.19041.0</TargetFramework>
     <AssemblyName>Flow.Launcher.Plugin.AppAudioManager</AssemblyName>
     <PackageId>Flow.Launcher.Plugin.AppAudioManager</PackageId>
     <Authors>DavidGBrett</Authors>
