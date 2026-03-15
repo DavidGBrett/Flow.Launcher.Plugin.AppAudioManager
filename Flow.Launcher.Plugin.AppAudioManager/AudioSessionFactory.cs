@@ -278,19 +278,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             }
             catch (Exception) { }
 
-            if (string.IsNullOrEmpty(uwpName))
-            {
-                uwpName = fallbackName;
-            }
-            if (string.IsNullOrEmpty(uwpIconPath))
-            {
-                uwpIconPath = fallbackIconPath;
-            }
-
             return new AudioSession(
                 session: session,
-                name: uwpName,
-                iconPath: uwpIconPath,
+                name: string.IsNullOrEmpty(uwpName) ? fallbackName : uwpName,
+                iconPath: string.IsNullOrEmpty(uwpIconPath) ? fallbackIconPath : uwpIconPath,
                 processId: (int)session.GetProcessID,
                 processFilePath: processFilePath
             );
