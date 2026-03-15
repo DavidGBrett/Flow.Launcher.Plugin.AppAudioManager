@@ -222,62 +222,41 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             string manifestPath = Path.Combine(appFolderPath, "AppxManifest.xml");
             try
             {
-                var xmlParser = new XMLParser(filePath: manifestPath);
-
-                // Try to get name if we don't have it yet
-                if (
-                    uwpName is null &&
-                    xmlParser.TryGetValueByPath(
-                        out string propDisplayName,
-                        "Properties",
-                        "DisplayName"
-                    )
-                )
+                if (File.Exists(manifestPath))
                 {
-                    uwpName = propDisplayName;
+                    var manifest = XDocument.Load(manifestPath);
+                    var defaultNamespace = manifest.Root?.GetDefaultNamespace();
+                    var uapNamespace = manifest.Root?.GetNamespaceOfPrefix("uap");
+
+                    // Get name if we don't have it yet
+                    if (uwpName is null)
+                    {
+                        var displayName = manifest.Descendants(defaultNamespace + "DisplayName").FirstOrDefault()?.Value;
+                        if (!string.IsNullOrEmpty(displayName))
+                        {
+                            uwpName = displayName;
+                        }
+                    }
+
+                    // Try to get Square44x44Logo first
+                    var visualElements = manifest.Descendants(uapNamespace + "VisualElements").FirstOrDefault();
+                    var logoPath = visualElements?.Attribute("Square44x44Logo")?.Value;
+                    
+                    // Fall back to Properties/Logo if Square44x44Logo not found
+                    if (string.IsNullOrEmpty(logoPath))
+                    {
+                        logoPath = manifest.Descendants(defaultNamespace + "Logo").FirstOrDefault()?.Value;
+                    }
+
+
+                    // resolve logo path to a real absolute path to an icon
+                    if (!string.IsNullOrEmpty(logoPath))
+                    {
+                        string logoManifestPath = Path.Combine(appFolderPath, logoPath);
+                        var variants = UWPResourceResolver.FindAllVariants(logoManifestPath);
+                        uwpIconPath = variants.ElementAtOrDefault(0);
+                    }
                 }
-
-                // Try to get icon path
-                if (
-                    xmlParser.TryGetElementByPath(
-                        out XElement visualElements,
-                        "Applications",
-                        "Application",
-                        "uap:VisualElements"
-                    )
-                    &&
-                    xmlParser.TryGetAttributeValue(
-                        out string square44LogoRelPath,
-                        element: visualElements,
-                        attributeName: "Square44x44Logo"
-                    )
-                )
-                {
-                    string logoManifestPath = Path.Combine(
-                        appFolderPath,
-                        square44LogoRelPath
-                    );
-
-                    var variants = UWPResourceResolver.FindAllVariants(logoManifestPath);
-
-                    uwpIconPath = variants.ElementAtOrDefault(0);
-                }
-                else if (xmlParser.TryGetValueByPath(
-                    out string propLogoRelPath,
-                    "Properties",
-                    "Logo"
-                ))
-                {
-                    string logoManifestPath = Path.Combine(
-                        appFolderPath,
-                        propLogoRelPath
-                    );
-
-                    var variants = UWPResourceResolver.FindAllVariants(logoManifestPath);
-
-                    uwpIconPath = variants.ElementAtOrDefault(0);
-                }
-
             }
             catch (Exception)
             {
