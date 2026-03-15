@@ -49,7 +49,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             string fallbackIconPath = GetFallbackIconPath(session: session, processFilePath: processFilePath);
 
             // if this is an UWP app
-            if (processFilePath.StartsWith(windowsAppsPath))
+            if (processFilePath is not null && processFilePath.StartsWith(windowsAppsPath))
             {
                 return HandleUWPApp(session: session, processFilePath: processFilePath, fallbackName: fallbackName, fallbackIconPath: fallbackIconPath);
             }
