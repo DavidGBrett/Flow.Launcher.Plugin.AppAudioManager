@@ -203,10 +203,9 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             var startIndex = processFilePath.IndexOf("WindowsApps\\") + "WindowsApps\\".Length;
             var appFolderPath = processFilePath.Substring(0, processFilePath.IndexOf("\\", startIndex) + 1);
 
+            // try to get name from package manager
             string packageFullName = new DirectoryInfo(appFolderPath).Name;
-
             var package = packageManager.FindPackageForUser(currentUserSid, packageFullName);
-
             if (package != null)
             {
                 var appEntry = package.GetAppListEntries().FirstOrDefault();
@@ -217,12 +216,13 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 }
             }
 
-
+            // extract info from manifest
             string manifestPath = Path.Combine(appFolderPath, "AppxManifest.xml");
             try
             {
                 var xmlParser = new XMLParser(filePath: manifestPath);
 
+                // Try to get name if we don't have it yet
                 if (
                     uwpName is null &&
                     xmlParser.TryGetValueByPath(
@@ -235,6 +235,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                     uwpName = propDisplayName;
                 }
 
+                // Try to get icon path
                 if (
                     xmlParser.TryGetElementByPath(
                         out XElement visualElements,
@@ -276,7 +277,10 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 }
 
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                // if we failed to extract info from the manifest just ignore as we will use the fallbacks
+            }
 
             return new AudioSession(
                 session: session,
