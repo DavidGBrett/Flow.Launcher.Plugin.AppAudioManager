@@ -114,6 +114,8 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 DeviceState.Active
             );
 
+            var audioSessionFactory = new AudioSessionFactory();
+
             Dictionary<string, AudioSessionGroup> audioSessionGroups = new Dictionary<string, AudioSessionGroup>();
 
             foreach (var device in audioDeviceEndpoints)
@@ -124,7 +126,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 for (int i = 0; i < sessions.Count; i++)
                 {
                     
-                    var sessionInfo = new AudioSession(sessions[i]);
+                    var sessionInfo = audioSessionFactory.create(sessions[i]);
 
                     // skip sessions without a name matching the search query
                     if (!string.IsNullOrEmpty(filter) &&
