@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using NAudio.CoreAudioApi.Interfaces;
@@ -98,6 +99,13 @@ namespace Flow.Launcher.Plugin.AppAudioManager
 
             return $"{minVolumePercent} - {maxVolumePercent}%";
 
+        }
+
+        public IReadOnlyList<int> GetUniqueProcessIds()
+        {
+            return AudioSessions.Select((a) => a.ProcessId)
+            .Distinct()
+            .ToImmutableArray();
         }
 
         public AudioSessionGroup(AudioSession audioSession)

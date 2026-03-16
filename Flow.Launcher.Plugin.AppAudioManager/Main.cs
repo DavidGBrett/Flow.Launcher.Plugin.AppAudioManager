@@ -396,7 +396,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
                 }
             });
 
-            List<int> processIDs = session.AudioSessions.ConvertAll((a)=>a.ProcessId);
+            var processIDs = session.GetUniqueProcessIds();
             string processIDString = string.Join(",",processIDs);
             results.Add( new Result
             {
