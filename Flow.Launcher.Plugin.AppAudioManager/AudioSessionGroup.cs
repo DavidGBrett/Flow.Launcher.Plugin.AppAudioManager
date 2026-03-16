@@ -108,6 +108,13 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             .ToImmutableArray();
         }
 
+        public IReadOnlyList<string> GetUniqueProcessFilePaths()
+        {
+            return AudioSessions.Select((a) => a.ProcessFilePath)
+            .Distinct()
+            .ToImmutableArray();
+        }
+
         public AudioSessionGroup(AudioSession audioSession)
         : this(new List<AudioSession> { audioSession })
         {}

@@ -413,10 +413,7 @@ namespace Flow.Launcher.Plugin.AppAudioManager
             });
 
 
-            List<string> processPaths = session.AudioSessions
-            .Select((a)=>a.ProcessFilePath)
-            .Distinct()
-            .ToList();
+            var processPaths = session.GetUniqueProcessFilePaths();
             string processPathString = string.Join(",",processPaths);
             results.Add( new Result
             {
